@@ -1,0 +1,20 @@
+{
+    "device": {
+        "id": "waybox-player",
+        "name": "Waybox Player"
+    },
+    "mpd": {
+        "host": "localhost",
+        "port": 6600
+    },
+    "content": {
+        "storage_path": "/home/user/music",
+        "playlists_path": "/home/user/music/playlists"
+    },
+    "audio": {
+        "backend": "pipewire",
+        "device": "default",
+        "volume": 80
+    },
+    "dev_mode": false
+}

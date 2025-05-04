@@ -1,0 +1,25 @@
+#!/usr/bin/pulseaudio -nF
+#
+# PulseAudio system mode configuration for dev mode
+# This configuration allows PulseAudio to work in a Docker container
+
+# Load system-wide modules
+.include /etc/pulse/default.pa
+
+# Allow anonymous authentication
+load-module module-native-protocol-tcp auth-anonymous=1
+
+# Load the RTP sender module for network audio
+load-module module-null-sink sink_name=rtp format=s16be channels=2 rate=44100
+load-module module-rtp-send source=rtp.monitor
+
+# Accept connections from any address
+load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1;172.17.0.0/16;192.168.0.0/16 auth-anonymous=1
+
+# Load ALSA modules
+load-module module-alsa-sink device=default
+load-module module-alsa-source device=default
+
+# Set default sink and source
+set-default-sink rtp
+set-default-source alsa_input.default
