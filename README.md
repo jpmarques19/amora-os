@@ -1,10 +1,14 @@
-# Python Waybox Player with Pipewire
+# AmoraOS - Intelligent Edge Audio Platform with SDK
 
-A Python implementation of the Waybox audio player using Pipewire as the audio backend. This project is part of the Arch Linux to Fedora CoreOS migration effort for Raspberry Pi music boxes.
+A Python implementation of an edge device audio system that provides a custom SDK for seamless integration with Waybox applications. This project migrates from Arch Linux to Debian Bookworm on Raspberry Pi music boxes, enabling sophisticated edge audio capabilities with cloud connectivity.
+
+> **Note:** IoT integration is currently a work in progress. The roadmap includes full Azure IoT Hub integration for device management and the AmoraSDK development for seamless integration with Waybox applications.
 
 ## Features
 
-- Python-based audio player with MPD and MPC for control and playback
+- Python-based edge audio player with MPD and MPC for control and playback
+- Azure IoT Hub integration for remote device management and monitoring
+- Cloud-based content synchronization and device orchestration
 - python-mpd2 library for MPD client functionality
 - Pipewire audio backend for modern audio routing
 - Playlist management and playback control
@@ -16,39 +20,40 @@ A Python implementation of the Waybox audio player using Pipewire as the audio b
 
 ## Architecture
 
-The application follows a modular architecture:
+<img src="docs/images/amora-os-overview.jpeg" alt="AmoraOS Architecture" width="800"/>
+
+The application follows a modular architecture with containerized components on edge devices connecting to Azure IoT Hub:
+
+- **Edge Device**: Raspberry Pi running Debian Bookworm with containerized components
+- **Python App**: Main application logic handling device-side operations
+- **Music Player Daemon**: Handles audio playback and playlist management
+- **Azure IoT SDK**: Manages cloud connectivity, device twins, and commands
+- **Raspberry Pi & IQAUDIO DAC**: Hardware platform for high-quality audio at the edge
+
+The containerized edge application communicates with Azure IoT Hub for device management, telemetry, and command processing, while using Azure Blob Storage for content synchronization.
 
 - **Main Module**: Entry point with CLI interface using Click
 - **Player Module**: Core functionality for MPD control and playback
 - **Utils Module**: Audio device detection and configuration utilities
+- **IoT Client**: Handles device-to-cloud and cloud-to-device messaging
+- **Content Manager**: Synchronizes audio content from cloud storage
 - **Configuration**: JSON-based configuration with Pydantic models
 
-## Project Structure
+## Project Structure (WIP)
 
 ```
-python-waybox-pipewire/
-├── src/                    # Source code
-│   ├── main.py             # Main entry point and CLI
-│   ├── player.py           # MPD player implementation
-│   └── utils.py            # Utility functions
-├── config/                 # Configuration files
-│   ├── config.json         # Default configuration
-│   ├── config.dev.json     # Development configuration
-│   └── mpd.conf            # MPD configuration
-├── scripts/                # Utility scripts
-│   ├── start.sh            # Container startup script
-│   ├── test-audio.py       # Audio testing script
-│   └── example.py          # Example usage script
-├── samples/                # Sample music files for testing
-│   ├── playlists/          # Sample playlists
-│   └── README.md           # Information about sample files
-├── tests/                  # Test suite
-│   ├── test_main.py        # Tests for main module
-│   ├── test_player.py      # Tests for player module
-│   └── test_utils.py       # Tests for utils module
-├── Dockerfile              # Container definition
-├── pyproject.toml          # Poetry project definition
-└── dev.ps1                 # PowerShell development script
+AmoraOS/
+├── src/                # Core application code
+│   ├── main.py         # Entry point and CLI
+│   ├── player.py       # Player implementation
+│   └── utils.py        # Utility functions
+├── config/             # Configuration files
+├── scripts/            # Utility scripts
+├── docs/               # Documentation
+├── tests/              # Test suite
+├── samples/            # Sample music for testing
+├── Dockerfile          # Container definition
+└── pyproject.toml      # Poetry project definition
 ```
 
 ## Development
@@ -265,7 +270,11 @@ To quickly test audio playback with your sample MP3 files:
 
 ## Future Enhancements
 
-- Azure IoT Hub integration for remote management
-- Content synchronization from cloud storage
-- Automatic updates for container images
-- Enhanced monitoring and diagnostics
+- Complete Azure IoT Hub integration for edge device management
+- Real-time device monitoring and diagnostics via IoT cloud
+- Content synchronization from Azure Blob Storage 
+- Over-the-air updates for AmoraOS on edge devices
+- Fleet management capabilities for multiple edge devices
+- Edge-to-cloud telemetry for performance monitoring
+- Offline operation with cloud synchronization when available
+- Enhanced security features for edge devices
