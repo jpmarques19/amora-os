@@ -1,4 +1,4 @@
-# AmoraOS - Intelligent Edge Audio Platform with SDK
+# AmoraOS - IoT Edge Audio Platform with SDK
 
 A Python implementation of an edge device audio system that provides a custom SDK for seamless integration with Waybox applications. This project migrates from Arch Linux to Debian Bookworm on Raspberry Pi music boxes, enabling sophisticated edge audio capabilities with cloud connectivity.
 
