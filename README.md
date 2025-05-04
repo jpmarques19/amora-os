@@ -39,21 +39,26 @@ The containerized edge application communicates with Azure IoT Hub for device ma
 - **Content Manager**: Synchronizes audio content from cloud storage
 - **Configuration**: JSON-based configuration with Pydantic models
 
-## Project Structure (WIP)
+## Project Structure
 
 ```
-AmoraOS/
-├── src/                # Core application code
-│   ├── main.py         # Entry point and CLI
-│   ├── player.py       # Player implementation
-│   └── utils.py        # Utility functions
-├── config/             # Configuration files
-├── scripts/            # Utility scripts
-├── docs/               # Documentation
-├── tests/              # Test suite
-├── samples/            # Sample music for testing
-├── Dockerfile          # Container definition
-└── pyproject.toml      # Poetry project definition
+amora-os/
+├── edge/              # Edge device implementation
+│   ├── src/           # Core application code
+│   │   ├── main.py    # Entry point and CLI
+│   │   ├── player.py  # Player implementation
+│   │   └── utils.py   # Utility functions
+│   ├── config/        # Configuration files
+│   ├── scripts/       # Utility scripts
+│   ├── samples/       # Sample music for testing
+│   ├── tests/         # Edge device test suite
+│   ├── Dockerfile     # Container definition
+│   └── pyproject.toml # Poetry project definition
+├── sdk/               # AmoraSDK for application integration
+│   └── ...            # SDK code (in development)
+├── docs/              # Documentation
+│   └── images/        # Architecture diagrams
+└── .gitignore         # Git ignore file
 ```
 
 ## Development
@@ -261,12 +266,6 @@ To quickly test audio playback with your sample MP3 files:
    - Add them to the playlist
    - Start playback
    - Show the current status
-
-## Known Issues
-
-- Some test cases related to keyboard interrupts and signal handling may fail
-- Audio device detection may require manual configuration on some systems
-- Development mode requires proper audio routing configuration
 
 ## Future Enhancements
 
