@@ -2,42 +2,86 @@
 
 A Python implementation of an edge device audio system that provides a custom SDK for seamless integration with Waybox applications. This project migrates from Arch Linux to Debian Bookworm on Raspberry Pi music boxes, enabling sophisticated edge audio capabilities with cloud connectivity.
 
-> **Note:** IoT integration is currently a work in progress. The roadmap includes full Azure IoT Hub integration for device management and the AmoraSDK development for seamless integration with Waybox applications.
+> **Note:** The SDK now includes MQTT broker integration for real-time communication between devices and client applications, as well as Azure IoT Hub integration for device management and telemetry.
+
+## Documentation
+
+Comprehensive documentation is available in the [docs](docs/) directory:
+
+- [Architecture](docs/architecture.md) - SDK architecture overview
+- [Azure Architecture](docs/azure_architecture.md) - Azure IoT Hub integration architecture
+- [Azure Implementation](docs/azure_implementation.md) - Azure IoT Hub implementation details
+- [Client Development](docs/client_development.md) - Guide for developing client applications
+- [Data Flow](docs/data_flow.md) - Data flow between components
+- [Device Changes](docs/device_changes.md) - Changes required for device integration
+- [Integration](docs/integration.md) - Integration with AmoraOS
+
+### Browsing Documentation Locally
+
+To browse the documentation with a local web server:
+
+```bash
+# From the project root directory
+./serve_docs.sh
+
+# Then open http://127.0.0.1:8000/ in your browser
+```
+
+This will start a local MkDocs server with the documentation.
 
 ## Features
 
+### Edge Device Features
 - Python-based edge audio player with MPD and MPC for control and playback
-- Azure IoT Hub integration for remote device management and monitoring
-- Cloud-based content synchronization and device orchestration
-- python-mpd2 library for MPD client functionality
 - Pipewire audio backend for modern audio routing
 - Playlist management and playback control
-- Development mode for testing on Windows host
-- Poetry for dependency management
-- Comprehensive test suite with high coverage
+- Development mode for testing on Linux host
 - Containerized deployment with Debian Bookworm
 - Support for IQUADIO PI DA audio HAT
+
+### SDK Features
+- MQTT broker integration for real-time communication
+- Azure IoT Hub integration for device management and telemetry
+- Device twin synchronization for state management
+- Direct method invocation for remote control
+- Telemetry for real-time status updates
+- Reconnection handling with exponential backoff
+- Comprehensive error handling and logging
+
+### Development Features
+- Poetry for dependency management
+- Comprehensive test suite with unit and integration tests
+- Mocking framework for testing without hardware
+- Detailed documentation for all components
 
 ## Architecture
 
 <img src="docs/images/amora-os-overview.jpeg" alt="AmoraOS Architecture" width="800"/>
 
-The application follows a modular architecture with containerized components on edge devices connecting to Azure IoT Hub:
+The application follows a modular architecture with containerized components on edge devices connecting to Azure IoT Hub and MQTT broker:
 
+### Edge Device Components
 - **Edge Device**: Raspberry Pi running Debian Bookworm with containerized components
 - **Python App**: Main application logic handling device-side operations
 - **Music Player Daemon**: Handles audio playback and playlist management
-- **Azure IoT SDK**: Manages cloud connectivity, device twins, and commands
 - **Raspberry Pi & IQAUDIO DAC**: Hardware platform for high-quality audio at the edge
 
-The containerized edge application communicates with Azure IoT Hub for device management, telemetry, and command processing, while using Azure Blob Storage for content synchronization.
+### SDK Components
+- **Device Module**: Core SDK functionality for device-side operations
+  - **Player Module**: Music player implementation with MPD client
+  - **IoT Module**: Azure IoT Hub integration for device management and telemetry
+  - **Broker Module**: MQTT broker integration for real-time communication
 
-- **Main Module**: Entry point with CLI interface using Click
-- **Player Module**: Core functionality for MPD control and playback
-- **Utils Module**: Audio device detection and configuration utilities
-- **IoT Client**: Handles device-to-cloud and cloud-to-device messaging
-- **Content Manager**: Synchronizes audio content from cloud storage
-- **Configuration**: JSON-based configuration with Pydantic models
+### Cloud Components
+- **Azure IoT Hub**: Manages device identity, security, and commands
+- **Azure Event Hub**: Handles high-volume telemetry data for real-time status updates
+- **MQTT Broker**: Enables real-time communication between devices and client applications
+
+### Communication Flows
+- **Device-to-Cloud**: Telemetry data sent to Azure IoT Hub and Event Hub
+- **Cloud-to-Device**: Commands sent from Azure IoT Hub to devices
+- **Device-to-Client**: Real-time status updates sent via MQTT broker
+- **Client-to-Device**: Commands sent from client applications via MQTT broker
 
 ## Project Structure
 
@@ -55,7 +99,14 @@ amora-os/
 │   ├── Dockerfile     # Container definition
 │   └── pyproject.toml # Poetry project definition
 ├── sdk/               # AmoraSDK for application integration
-│   └── ...            # SDK code (in development)
+│   ├── amora_sdk/     # Core SDK code
+│   │   ├── device/    # Device-side SDK implementation
+│   │   │   ├── broker/  # MQTT broker communication
+│   │   │   ├── iot/     # Azure IoT Hub integration
+│   │   │   └── player/  # Music player implementation
+│   │   └── __init__.py  # SDK entry point
+│   ├── tests/         # Unit tests
+│   └── integration_tests/ # Integration tests
 ├── docs/              # Documentation
 │   └── images/        # Architecture diagrams
 └── .gitignore         # Git ignore file
@@ -85,30 +136,9 @@ poetry run waybox-player test-audio
 poetry run pytest --cov=src
 ```
 
-### Windows Development
+### Linux-Only Development
 
-For Windows development, a PowerShell script is provided:
-
-```powershell
-# Interactive menu mode
-.\dev.ps1
-
-# Or use direct command-line parameters:
-.\dev.ps1 -Start    # Start container in dev mode
-.\dev.ps1 -Test     # Run tests locally with coverage
-.\dev.ps1 -Build    # Build container image
-.\dev.ps1 -Clean    # Clean up containers
-```
-
-#### Logging System
-
-The dev.ps1 script includes an automatic logging system:
-
-- All operations are logged to the `logs` directory
-- Each run creates a timestamped log file (e.g., `waybox_dev_20250504_181523.log`)
-- Only the last 3 log files are kept to prevent clutter
-- The script exits after each operation completes
-- To run another operation, start the script again
+This project is now exclusively developed and maintained for Linux systems. Windows development is no longer supported.
 
 ## Docker
 
@@ -269,11 +299,20 @@ To quickly test audio playback with your sample MP3 files:
 
 ## Future Enhancements
 
-- Complete Azure IoT Hub integration for edge device management
-- Real-time device monitoring and diagnostics via IoT cloud
-- Content synchronization from Azure Blob Storage 
+### SDK Enhancements
+- Client-side SDK for JavaScript/TypeScript applications
+- React component library for quick integration
+- Enhanced security with certificate-based authentication
+- Support for additional MQTT brokers (AWS IoT Core, HiveMQ)
+
+### Device Enhancements
+- Content synchronization from Azure Blob Storage
 - Over-the-air updates for AmoraOS on edge devices
 - Fleet management capabilities for multiple edge devices
-- Edge-to-cloud telemetry for performance monitoring
-- Offline operation with cloud synchronization when available
-- Enhanced security features for edge devices
+- Enhanced offline operation with cloud synchronization when available
+
+### Cloud Enhancements
+- Azure Digital Twins integration for device modeling
+- Azure Functions for advanced device orchestration
+- Power BI dashboards for fleet analytics
+- Azure AD integration for secure access control

@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "amora-sdk"
+version = "0.1.0"
+description = "AmoraSDK - SDK for controlling AmoraOS player device"
+authors = ["AmoraOS Team"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+mkdocs = "^1.6.0"
+mkdocs-material = "^9.6.0"
+azure-iot-device = "^2.14.0"
+python-mpd2 = "^3.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-asyncio = "^0.21.1"
+pytest-cov = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.config]
+virtualenvs.in-project = true

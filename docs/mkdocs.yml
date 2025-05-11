@@ -1,0 +1,60 @@
+site_name: AmoraOS Documentation
+site_description: Documentation for AmoraOS - IoT Edge Audio Platform and SDK
+site_author: AmoraOS Team
+
+# Repository
+repo_name: amora-os
+repo_url: https://github.com/yourusername/amora-os
+
+# Directories
+docs_dir: site_docs
+site_dir: ../site
+
+# Navigation
+nav:
+  - Home: index.md
+  - User Guide:
+    - Getting Started: getting_started.md
+    - Configuration: configuration.md
+  - Developer Guide:
+    - Overview: developer_guide.md
+    - Architecture: architecture.md
+    - Data Flow: data_flow.md
+  - IoT Integration:
+    - Overview: iot_integration.md
+    - Azure Architecture: azure_architecture.md
+    - Azure Implementation: azure_implementation.md
+    - Azure Resources: azure_resources.md
+  - Real-time Communication: realtime_architecture.md
+  - SDK:
+    - Client Development: client_development.md
+    - Device Integration: device_changes.md
+    - Integration Guide: integration.md
+
+# Theme
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: indigo
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.expand
+    - navigation.indexes
+    - content.code.copy
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - codehilite
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.details
+  - toc:
+      permalink: true
+
+# Plugins
+plugins:
+  - search
