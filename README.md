@@ -56,7 +56,7 @@ This will start a local MkDocs server with the documentation.
 
 ## Architecture
 
-<img src="docs/images/amora-os-overview.jpeg" alt="AmoraOS Architecture" width="800"/>
+<img src="docs/images/amora-os-overview-v0.1.png" alt="AmoraOS Architecture" width="800"/>
 
 The application follows a modular architecture with containerized components on edge devices connecting to Azure IoT Hub and MQTT broker:
 
