@@ -1,6 +1,6 @@
 # Amora Web Player Integration Guide
 
-This guide explains how to integrate the Amora Web Player with the Amora client SDK for production use.
+This guide explains how to integrate the minimalist Amora Web Player with the Amora client SDK for production use.
 
 ## Overview
 

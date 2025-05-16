@@ -1,16 +1,16 @@
 # Amora Music Player Web Application
 
-A responsive web frontend for the Amora music system that connects to the MQTT broker through the Amora client SDK.
+A minimalist, responsive web frontend for the Amora music system that connects to the MQTT broker through the Amora client SDK.
 
 ## Overview
 
-This web application provides a user-friendly interface for controlling the Amora music player. It allows users to:
+This web application provides a clean, simplified interface for controlling the Amora music player. It allows users to:
 
 - Connect to the MQTT broker
 - Control music playback (play, pause, stop, next, previous)
 - Adjust volume
 - View and select playlists
-- See the current playing track and playback status
+- See the current playing track and playback status as text
 - Toggle repeat and random playback modes
 
 ## Setup Instructions
@@ -30,11 +30,7 @@ This web application provides a user-friendly interface for controlling the Amor
    git checkout feature/web-player-ui
    ```
 
-2. Add a placeholder album art image:
-   - Create an `assets` directory in the `web-player` folder if it doesn't exist
-   - Add a placeholder image named `placeholder-album.jpg` in the `assets` directory
-
-3. Serve the web application:
+2. Serve the web application:
    - You can use any static file server. For example, with Python:
      ```bash
      cd web-player
@@ -47,7 +43,7 @@ This web application provides a user-friendly interface for controlling the Amor
      serve -s .
      ```
 
-4. Open the application in your browser:
+3. Open the application in your browser:
    - Navigate to `http://localhost:8080` (or the port you configured)
 
 ### Production Deployment
@@ -64,7 +60,7 @@ This web application provides a user-friendly interface for controlling the Amor
      ```html
      <!-- Replace this line -->
      <script src="js/amora-sdk-mock.js"></script>
-     
+
      <!-- With this line -->
      <script src="path/to/amora-sdk.min.js"></script>
      ```
@@ -98,7 +94,6 @@ The player controls provide basic playback functionality:
 
 The now playing display shows information about the current track:
 
-- **Album Art**: Visual representation of the current track's album
 - **Track Title**: Name of the current track
 - **Artist**: Artist of the current track
 - **Album**: Album of the current track

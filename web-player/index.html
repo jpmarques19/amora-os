@@ -17,7 +17,7 @@
           <h3>Amora Player</h3>
           <div class="connection-status disconnected" id="connectionStatus">Disconnected</div>
         </div>
-        
+
         <div class="playlist-section">
           <h5>Playlists</h5>
           <div class="playlist-selector">
@@ -26,7 +26,7 @@
             </select>
             <button class="btn btn-primary mt-2 w-100" id="loadPlaylistButton">Load Playlist</button>
           </div>
-          
+
           <h5 class="mt-4">Current Playlist</h5>
           <div class="playlist-container">
             <ul class="list-group" id="playlistItems">
@@ -35,29 +35,27 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Main Content / Player -->
       <div class="col-md-9 main-content">
         <div class="player-container">
           <div class="now-playing-container">
-            <div class="album-art-container">
-              <img src="assets/placeholder-album.jpg" alt="Album Art" class="album-art" id="albumArt">
-            </div>
-            
             <div class="track-info">
               <h2 id="trackTitle">No Track Playing</h2>
               <p id="trackArtist">-</p>
               <p id="trackAlbum">-</p>
-              
-              <div class="progress-container">
-                <div class="time-display" id="currentTime">0:00</div>
+
+              <div class="playback-status">
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="time-display" id="currentTime">0:00</span>
+                  <span class="time-display" id="duration">0:00</span>
+                </div>
                 <div class="progress">
                   <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%"></div>
                 </div>
-                <div class="time-display" id="duration">0:00</div>
               </div>
-              
-              <div class="controls">
+
+              <div class="controls mt-4">
                 <button class="btn control-btn" id="prevButton">
                   <i class="bi bi-skip-backward-fill"></i>
                 </button>
@@ -71,15 +69,17 @@
                   <i class="bi bi-skip-forward-fill"></i>
                 </button>
               </div>
-              
-              <div class="volume-container">
-                <i class="bi bi-volume-down"></i>
-                <input type="range" class="form-range" id="volumeSlider" min="0" max="100" value="50">
-                <i class="bi bi-volume-up"></i>
-                <span id="volumeValue">50</span>%
+
+              <div class="volume-container mt-4">
+                <div class="d-flex align-items-center">
+                  <i class="bi bi-volume-down me-2"></i>
+                  <input type="range" class="form-range" id="volumeSlider" min="0" max="100" value="50">
+                  <i class="bi bi-volume-up ms-2"></i>
+                  <span id="volumeValue" class="ms-2">50</span>%
+                </div>
               </div>
-              
-              <div class="playback-options">
+
+              <div class="playback-options mt-3">
                 <div class="form-check form-check-inline">
                   <input class="form-check-input" type="checkbox" id="repeatCheck">
                   <label class="form-check-label" for="repeatCheck">Repeat</label>
@@ -92,8 +92,8 @@
             </div>
           </div>
         </div>
-        
-        <div class="connection-panel">
+
+        <div class="connection-panel mt-4">
           <h4>MQTT Connection</h4>
           <div class="row g-3">
             <div class="col-md-4">

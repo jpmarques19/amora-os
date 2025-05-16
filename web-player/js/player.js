@@ -1,13 +1,12 @@
 /**
  * Amora Music Player
- * 
+ *
  * Main JavaScript file for the Amora Music Player web application.
  * This file handles the UI interactions and connects to the Amora SDK.
  */
 
 // DOM Elements
 const connectionStatusEl = document.getElementById('connectionStatus');
-const albumArtEl = document.getElementById('albumArt');
 const trackTitleEl = document.getElementById('trackTitle');
 const trackArtistEl = document.getElementById('trackArtist');
 const trackAlbumEl = document.getElementById('trackAlbum');
@@ -34,7 +33,6 @@ const disconnectButtonEl = document.getElementById('disconnectButton');
 
 // Global variables
 let amoraClient = null;
-const PLACEHOLDER_IMAGE = 'assets/placeholder-album.jpg';
 
 /**
  * Format time in MM:SS format
@@ -45,7 +43,7 @@ function formatTime(seconds) {
   if (seconds === undefined || seconds === null) {
     return '0:00';
   }
-  
+
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -62,16 +60,13 @@ function updatePlayerUI(status) {
   } else {
     playPauseIconEl.className = 'bi bi-play-fill';
   }
-  
+
   // Update current song
   if (status.currentSong) {
     trackTitleEl.textContent = status.currentSong.title || 'Unknown Title';
     trackArtistEl.textContent = status.currentSong.artist || 'Unknown Artist';
     trackAlbumEl.textContent = status.currentSong.album || 'Unknown Album';
-    
-    // Update album art (in a real implementation, this would use the actual album art URL)
-    albumArtEl.src = status.currentSong.albumArt || PLACEHOLDER_IMAGE;
-    
+
     // Update duration
     if (status.currentSong.duration) {
       durationEl.textContent = formatTime(status.currentSong.duration);
@@ -82,10 +77,9 @@ function updatePlayerUI(status) {
     trackTitleEl.textContent = 'No Track Playing';
     trackArtistEl.textContent = '-';
     trackAlbumEl.textContent = '-';
-    albumArtEl.src = PLACEHOLDER_IMAGE;
     durationEl.textContent = '0:00';
   }
-  
+
   // Update position
   if (status.position !== undefined && status.currentSong && status.currentSong.duration) {
     const percent = (status.position / status.currentSong.duration) * 100;
@@ -95,11 +89,11 @@ function updatePlayerUI(status) {
     progressBarEl.style.width = '0%';
     currentTimeEl.textContent = '0:00';
   }
-  
+
   // Update volume
   volumeSliderEl.value = status.volume;
   volumeValueEl.textContent = status.volume;
-  
+
   // Update repeat and random
   repeatCheckEl.checked = status.repeat;
   randomCheckEl.checked = status.random;
@@ -112,7 +106,7 @@ function updatePlayerUI(status) {
 function updatePlaylistUI(playlists) {
   // Clear the playlist select
   playlistSelectEl.innerHTML = '<option value="">Select a playlist</option>';
-  
+
   // Add playlists to the select
   playlists.forEach(playlist => {
     const option = document.createElement('option');
@@ -120,14 +114,14 @@ function updatePlaylistUI(playlists) {
     option.textContent = playlist.name;
     playlistSelectEl.appendChild(option);
   });
-  
+
   // Find the current playlist (the one with a current track)
   const currentPlaylist = playlists.find(p => p.items.some(i => i.isCurrent));
-  
+
   // Update the current playlist items
   if (currentPlaylist && currentPlaylist.items.length > 0) {
     playlistItemsEl.innerHTML = '';
-    
+
     currentPlaylist.items.forEach((item, index) => {
       const li = document.createElement('li');
       li.className = `list-group-item playlist-item ${item.isCurrent ? 'active' : ''}`;
@@ -140,14 +134,14 @@ function updatePlaylistUI(playlists) {
           <span class="badge bg-primary rounded-pill">${formatTime(item.duration)}</span>
         </div>
       `;
-      
+
       // Add click handler to play this track
       li.addEventListener('click', () => {
         if (amoraClient) {
           amoraClient.playTrack(index).catch(handleError);
         }
       });
-      
+
       playlistItemsEl.appendChild(li);
     });
   } else {
@@ -162,7 +156,7 @@ function updatePlaylistUI(playlists) {
 function updateConnectionStatus(status) {
   connectionStatusEl.textContent = status;
   connectionStatusEl.className = `connection-status ${status.toLowerCase()}`;
-  
+
   // Update button states
   if (status === 'Connected') {
     connectButtonEl.disabled = true;
@@ -207,26 +201,26 @@ async function connect() {
     const brokerUrl = brokerUrlEl.value;
     const brokerPort = parseInt(brokerPortEl.value, 10);
     const deviceId = deviceIdEl.value;
-    
+
     // Validate input
     if (!brokerUrl) {
       alert('Please enter a broker URL');
       return;
     }
-    
+
     if (isNaN(brokerPort) || brokerPort <= 0) {
       alert('Please enter a valid broker port');
       return;
     }
-    
+
     if (!deviceId) {
       alert('Please enter a device ID');
       return;
     }
-    
+
     // Update connection status
     updateConnectionStatus('Connecting');
-    
+
     // Create client configuration
     const config = {
       brokerUrl,
@@ -238,10 +232,10 @@ async function connect() {
         reconnectOnFailure: true
       }
     };
-    
+
     // Create client instance
     amoraClient = new AmoraSDK.AmoraClient(config);
-    
+
     // Set up event listeners
     amoraClient.on(AmoraSDK.EventType.CONNECTION_CHANGE, (status) => {
       if (status === AmoraSDK.ConnectionStatus.CONNECTED) {
@@ -252,32 +246,32 @@ async function connect() {
         updateConnectionStatus('Disconnected');
       }
     });
-    
+
     amoraClient.on(AmoraSDK.EventType.STATE_CHANGE, () => {
       updatePlayerUI(amoraClient.getPlayerStatus());
     });
-    
+
     amoraClient.on(AmoraSDK.EventType.POSITION_CHANGE, () => {
       updatePlayerUI(amoraClient.getPlayerStatus());
     });
-    
+
     amoraClient.on(AmoraSDK.EventType.VOLUME_CHANGE, () => {
       updatePlayerUI(amoraClient.getPlayerStatus());
     });
-    
+
     amoraClient.on(AmoraSDK.EventType.PLAYLIST_CHANGE, () => {
       updatePlaylistUI(amoraClient.getPlaylists());
     });
-    
+
     amoraClient.on(AmoraSDK.EventType.ERROR, handleError);
-    
+
     // Connect to the MQTT broker
     await amoraClient.connect();
-    
+
     // Get initial status
     const status = await amoraClient.getStatus();
     updatePlayerUI(status);
-    
+
     // Get available playlists
     const playlists = await amoraClient.fetchPlaylists();
     updatePlaylistUI(playlists);
@@ -296,7 +290,7 @@ async function disconnect() {
       await amoraClient.disconnect();
       amoraClient = null;
     }
-    
+
     updateConnectionStatus('Disconnected');
   } catch (error) {
     handleError(error);
@@ -316,7 +310,7 @@ prevButtonEl.addEventListener('click', () => {
 playPauseButtonEl.addEventListener('click', () => {
   if (amoraClient) {
     const status = amoraClient.getPlayerStatus();
-    
+
     if (status.state === AmoraSDK.PlayerState.PLAYING) {
       amoraClient.pause().catch(handleError);
     } else {
@@ -363,7 +357,7 @@ randomCheckEl.addEventListener('change', () => {
 loadPlaylistButtonEl.addEventListener('click', () => {
   if (amoraClient) {
     const playlist = playlistSelectEl.value;
-    
+
     if (playlist) {
       amoraClient.playPlaylist(playlist).catch(handleError);
     }
