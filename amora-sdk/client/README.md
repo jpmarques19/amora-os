@@ -55,10 +55,10 @@ async function run() {
 
     // Control the player
     await client.play();
-    
+
     // Wait for 5 seconds
     await new Promise(resolve => setTimeout(resolve, 5000));
-    
+
     // Disconnect when done
     await client.disconnect();
   } catch (error) {
@@ -112,15 +112,20 @@ interface AmoraClientConfig {
 - `next()`: Skip to the next track
 - `previous()`: Go back to the previous track
 - `setVolume(volume: number)`: Set the volume (0-100)
+- `getVolume()`: Get the current volume
 - `setRepeat(repeat: boolean)`: Set repeat mode
 - `setRandom(random: boolean)`: Set random mode
 - `getStatus()`: Get the current player status
-- `fetchPlaylists()`: Get the available playlists
+- `getPlaylists()`: Get the available playlists
 - `playPlaylist(playlist: string)`: Play a playlist
+- `getPlaylistSongs(playlist: string)`: Get songs in a playlist
+- `createPlaylist(name: string, files: string[])`: Create a new playlist
+- `deletePlaylist(playlist: string)`: Delete a playlist
+- `updateDatabase()`: Update the music database
 - `playTrack(trackIndex: number)`: Play a specific track
-- `addTrack(track: string, playlist?: string)`: Add a track to a playlist
-- `removeTrack(trackIndex: number, playlist?: string)`: Remove a track from a playlist
-- `reorderTrack(fromIndex: number, toIndex: number, playlist?: string)`: Reorder tracks in a playlist
+- `addTrack(track: string, playlist: string)`: Add a track to a playlist
+- `removeTrack(trackIndex: number, playlist: string)`: Remove a track from a playlist
+- `reorderTrack(fromIndex: number, toIndex: number, playlist: string)`: Reorder tracks in a playlist
 
 #### Event Handling
 
@@ -144,7 +149,6 @@ Available event types:
 See the `examples` directory for more detailed examples:
 
 - `basic-usage.js`: Basic usage example
-- `web-app-example`: Complete web application example
 
 ## MQTT Topics
 

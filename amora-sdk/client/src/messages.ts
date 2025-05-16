@@ -3,10 +3,10 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { 
-  CommandMessage, 
-  ResponseMessage, 
-  StateMessage, 
+import {
+  CommandMessage,
+  ResponseMessage,
+  StateMessage,
   PlayerState,
   SongMetadata
 } from './types';
@@ -35,10 +35,10 @@ export function parseMessage(payload: Buffer | string): CommandMessage | Respons
   try {
     // Convert buffer to string if needed
     const payloadStr = payload instanceof Buffer ? payload.toString() : payload;
-    
+
     // Parse JSON
     const data = JSON.parse(payloadStr);
-    
+
     // Determine message type
     if ('command' in data && 'commandId' in data) {
       return data as CommandMessage;
@@ -47,7 +47,7 @@ export function parseMessage(payload: Buffer | string): CommandMessage | Respons
     } else if ('state' in data) {
       return data as StateMessage;
     }
-    
+
     return null;
   } catch (error) {
     console.error('Error parsing message:', error);
@@ -59,7 +59,6 @@ export function parseMessage(payload: Buffer | string): CommandMessage | Respons
  * Create a state message from player status
  * @param state Player state
  * @param currentSong Current song
- * @param position Current position
  * @param volume Current volume
  * @param repeat Whether repeat mode is enabled
  * @param random Whether random mode is enabled
@@ -68,7 +67,6 @@ export function parseMessage(payload: Buffer | string): CommandMessage | Respons
 export function createStateMessage(
   state: PlayerState,
   currentSong?: SongMetadata,
-  position?: number,
   volume = 0,
   repeat = false,
   random = false
@@ -76,7 +74,6 @@ export function createStateMessage(
   return {
     state,
     currentSong,
-    position,
     volume,
     repeat,
     random,

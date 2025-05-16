@@ -18,7 +18,8 @@ import {
   CommandMessage,
   ResponseMessage,
   StateMessage,
-  PlayerState
+  PlayerState,
+  SongMetadata
 } from './types';
 
 /**
@@ -70,12 +71,12 @@ export class AmoraClient extends EventEmitter {
   public async connect(): Promise<void> {
     try {
       await this.mqttClient.connect();
-      
+
       // Subscribe to topics
       for (const topic of this.topicManager.getSubscriptionTopics()) {
         await this.mqttClient.subscribe(topic);
       }
-      
+
       // Get initial status
       await this.getStatus();
     } catch (error) {
@@ -94,13 +95,13 @@ export class AmoraClient extends EventEmitter {
         clearInterval(this.commandTimeoutTimer);
         this.commandTimeoutTimer = null;
       }
-      
+
       // Reject all pending commands
       for (const [commandId, { reject }] of this.pendingCommands.entries()) {
         reject(new Error('Client disconnected'));
         this.pendingCommands.delete(commandId);
       }
-      
+
       await this.mqttClient.disconnect();
     } catch (error) {
       this.emit(EventType.ERROR, error);
@@ -206,26 +207,25 @@ export class AmoraClient extends EventEmitter {
    */
   private handleStateMessage(message: StateMessage): void {
     const oldStatus = { ...this.playerStatus };
-    
+
     // Update player status
     this.playerStatus = {
       state: message.state,
       currentSong: message.currentSong,
-      position: message.position,
       volume: message.volume,
       repeat: message.repeat,
       random: message.random
     };
-    
+
     // Emit events for changes
     if (oldStatus.state !== this.playerStatus.state) {
       this.emit(EventType.STATE_CHANGE, this.playerStatus.state);
     }
-    
-    if (oldStatus.position !== this.playerStatus.position) {
-      this.emit(EventType.POSITION_CHANGE, this.playerStatus.position);
+
+    if (oldStatus.currentSong?.position !== this.playerStatus.currentSong?.position) {
+      this.emit(EventType.POSITION_CHANGE, this.playerStatus.currentSong?.position);
     }
-    
+
     if (oldStatus.volume !== this.playerStatus.volume) {
       this.emit(EventType.VOLUME_CHANGE, this.playerStatus.volume);
     }
@@ -241,7 +241,7 @@ export class AmoraClient extends EventEmitter {
     if (pendingCommand) {
       // Remove from pending commands
       this.pendingCommands.delete(message.commandId);
-      
+
       // Resolve or reject the promise
       if (message.result) {
         pendingCommand.resolve(message);
@@ -249,10 +249,10 @@ export class AmoraClient extends EventEmitter {
         pendingCommand.reject(new Error(message.message || 'Command failed'));
       }
     }
-    
+
     // Emit event
     this.emit(EventType.COMMAND_RESPONSE, message);
-    
+
     // Handle specific responses
     if (message.data) {
       if (message.data.playlists) {
@@ -276,7 +276,7 @@ export class AmoraClient extends EventEmitter {
   private startCommandTimeoutChecker(): void {
     this.commandTimeoutTimer = setInterval(() => {
       const now = Date.now();
-      
+
       for (const [commandId, { reject, timestamp }] of this.pendingCommands.entries()) {
         if (now - timestamp > this.commandTimeout) {
           reject(new Error('Command timed out'));
@@ -328,7 +328,15 @@ export class AmoraClient extends EventEmitter {
    * @param volume Volume level (0-100)
    */
   public async setVolume(volume: number): Promise<void> {
-    await this.sendCommand('setVolume', { volume });
+    await this.sendCommand('set_volume', { volume });
+  }
+
+  /**
+   * Get the current volume
+   */
+  public async getVolume(): Promise<number> {
+    const response = await this.sendCommand('get_volume');
+    return response.data.result;
   }
 
   /**
@@ -336,7 +344,7 @@ export class AmoraClient extends EventEmitter {
    * @param repeat Whether to enable repeat mode
    */
   public async setRepeat(repeat: boolean): Promise<void> {
-    await this.sendCommand('setRepeat', { repeat });
+    await this.sendCommand('set_repeat', { repeat });
   }
 
   /**
@@ -344,23 +352,23 @@ export class AmoraClient extends EventEmitter {
    * @param random Whether to enable random mode
    */
   public async setRandom(random: boolean): Promise<void> {
-    await this.sendCommand('setRandom', { random });
+    await this.sendCommand('set_random', { random });
   }
 
   /**
    * Get the current player status
    */
   public async getStatus(): Promise<PlayerStatus> {
-    const response = await this.sendCommand('getStatus');
-    return response.data;
+    const response = await this.sendCommand('get_status');
+    return response.data.result;
   }
 
   /**
    * Get the available playlists
    */
-  public async fetchPlaylists(): Promise<Playlist[]> {
-    const response = await this.sendCommand('getPlaylists');
-    this.playlists = response.data.playlists;
+  public async getPlaylists(): Promise<Playlist[]> {
+    const response = await this.sendCommand('get_playlists');
+    this.playlists = response.data.result;
     this.emit(EventType.PLAYLIST_CHANGE, this.playlists);
     return this.playlists;
   }
@@ -370,42 +378,75 @@ export class AmoraClient extends EventEmitter {
    * @param playlist Playlist name
    */
   public async playPlaylist(playlist: string): Promise<void> {
-    await this.sendCommand('playPlaylist', { playlist });
+    await this.sendCommand('play_playlist', { playlist });
   }
 
   /**
-   * Play a specific track
+   * Get songs in a playlist
+   * @param playlist Playlist name
+   */
+  public async getPlaylistSongs(playlist: string): Promise<SongMetadata[]> {
+    const response = await this.sendCommand('get_playlist_songs', { playlist });
+    return response.data.result;
+  }
+
+  /**
+   * Create a playlist
+   * @param name Playlist name
+   * @param files List of files to add to the playlist
+   */
+  public async createPlaylist(name: string, files: string[]): Promise<void> {
+    await this.sendCommand('create_playlist', { name, files });
+  }
+
+  /**
+   * Delete a playlist
+   * @param playlist Playlist name
+   */
+  public async deletePlaylist(playlist: string): Promise<void> {
+    await this.sendCommand('delete_playlist', { playlist });
+  }
+
+  /**
+   * Update the music database
+   */
+  public async updateDatabase(): Promise<void> {
+    await this.sendCommand('update_database');
+  }
+
+  /**
+   * Play a specific track by index
    * @param trackIndex Track index in the current playlist
    */
   public async playTrack(trackIndex: number): Promise<void> {
-    await this.sendCommand('playTrack', { trackIndex });
+    await this.sendCommand('play_track', { trackIndex });
   }
 
   /**
-   * Add a track to the playlist
+   * Add a track to a playlist
    * @param track Track to add
-   * @param playlist Playlist to add to (optional, defaults to current playlist)
+   * @param playlist Playlist to add to
    */
-  public async addTrack(track: string, playlist?: string): Promise<void> {
-    await this.sendCommand('addTrack', { track, playlist });
+  public async addTrack(track: string, playlist: string): Promise<void> {
+    await this.sendCommand('add_track', { track, playlist });
   }
 
   /**
-   * Remove a track from the playlist
+   * Remove a track from a playlist
    * @param trackIndex Track index in the playlist
-   * @param playlist Playlist to remove from (optional, defaults to current playlist)
+   * @param playlist Playlist to remove from
    */
-  public async removeTrack(trackIndex: number, playlist?: string): Promise<void> {
-    await this.sendCommand('removeTrack', { trackIndex, playlist });
+  public async removeTrack(trackIndex: number, playlist: string): Promise<void> {
+    await this.sendCommand('remove_track', { trackIndex, playlist });
   }
 
   /**
-   * Reorder tracks in the playlist
+   * Reorder tracks in a playlist
    * @param fromIndex Original position
    * @param toIndex New position
-   * @param playlist Playlist to reorder (optional, defaults to current playlist)
+   * @param playlist Playlist to reorder
    */
-  public async reorderTrack(fromIndex: number, toIndex: number, playlist?: string): Promise<void> {
-    await this.sendCommand('reorderTrack', { fromIndex, toIndex, playlist });
+  public async reorderTrack(fromIndex: number, toIndex: number, playlist: string): Promise<void> {
+    await this.sendCommand('reorder_track', { fromIndex, toIndex, playlist });
   }
 }

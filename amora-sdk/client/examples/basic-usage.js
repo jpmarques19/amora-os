@@ -63,37 +63,37 @@ async function run() {
     console.log('Current status:', status);
 
     // Get available playlists
-    const playlists = await client.fetchPlaylists();
+    const playlists = await client.getPlaylists();
     console.log(`Available playlists: ${playlists.map(p => p.name).join(', ')}`);
 
     // Control the player
     console.log('Playing...');
     await client.play();
-    
+
     // Wait for 5 seconds
     await new Promise(resolve => setTimeout(resolve, 5000));
-    
+
     console.log('Pausing...');
     await client.pause();
-    
+
     // Wait for 2 seconds
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     console.log('Setting volume to 80%...');
     await client.setVolume(80);
-    
+
     // Wait for 2 seconds
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     console.log('Playing next track...');
     await client.next();
-    
+
     // Wait for 5 seconds
     await new Promise(resolve => setTimeout(resolve, 5000));
-    
+
     console.log('Stopping...');
     await client.stop();
-    
+
     // Disconnect when done
     console.log('Disconnecting...');
     await client.disconnect();

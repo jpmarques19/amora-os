@@ -55,15 +55,24 @@ export interface AmoraClientConfig {
   connectionOptions?: ConnectionOptions;
   /** Default QoS level for MQTT messages */
   defaultQoS?: QoS;
+  /** Status updater configuration */
+  statusUpdater?: {
+    /** Update interval in seconds */
+    updateInterval?: number;
+    /** Position update interval in seconds */
+    positionUpdateInterval?: number;
+    /** Full update interval in seconds */
+    fullUpdateInterval?: number;
+  };
 }
 
 /**
  * Player state
  */
 export enum PlayerState {
-  PLAYING = 'playing',
-  PAUSED = 'paused',
-  STOPPED = 'stopped',
+  PLAYING = 'play',
+  PAUSED = 'pause',
+  STOPPED = 'stop',
   LOADING = 'loading',
   ERROR = 'error'
 }
@@ -82,6 +91,8 @@ export interface SongMetadata {
   albumArt?: string;
   /** Song duration in seconds */
   duration: number;
+  /** Current position in seconds */
+  position?: number;
   /** File path or URL */
   file: string;
   /** Additional metadata */
@@ -96,8 +107,6 @@ export interface PlayerStatus {
   state: PlayerState;
   /** Current song metadata */
   currentSong?: SongMetadata;
-  /** Current playback position in seconds */
-  position?: number;
   /** Current volume (0-100) */
   volume: number;
   /** Whether repeat mode is enabled */
@@ -164,8 +173,6 @@ export interface StateMessage {
   state: PlayerState;
   /** Current song */
   currentSong?: SongMetadata;
-  /** Current position */
-  position?: number;
   /** Current volume */
   volume: number;
   /** Whether repeat mode is enabled */
