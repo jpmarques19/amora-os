@@ -39,6 +39,7 @@ class BrokerConfig:
     topic_prefix: str = "amora/devices"
     connection_options: ConnectionOptions = field(default_factory=ConnectionOptions)
     default_qos: QoS = QoS.AT_LEAST_ONCE
+    raw_config: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, config: Dict[str, Any]) -> 'BrokerConfig':
@@ -74,5 +75,6 @@ class BrokerConfig:
             device_id=device_id,
             topic_prefix=broker_config.get('topic_prefix', 'amora/devices'),
             connection_options=connection_options,
-            default_qos=QoS(broker_config.get('default_qos', 1))
+            default_qos=QoS(broker_config.get('default_qos', 1)),
+            raw_config=config
         )

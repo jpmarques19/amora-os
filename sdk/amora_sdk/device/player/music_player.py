@@ -260,12 +260,21 @@ class MusicPlayer:
             # Get playlist name
             playlist = self.current_playlist
 
+            # Get playlist tracks if a playlist is active
+            playlist_tracks = None
+            if playlist:
+                try:
+                    playlist_tracks = self.get_playlist_songs(playlist)
+                except Exception as e:
+                    logger.error(f"Error getting playlist tracks: {e}")
+
             # Build the status response
             result = {
                 "state": status.get("state", "unknown"),
                 "volume": int(status.get("volume", "0")),
                 "current_song": current_song,
                 "playlist": playlist,
+                "playlist_tracks": playlist_tracks,
                 "repeat": status.get("repeat", "0") == "1",
                 "random": status.get("random", "0") == "1"
             }

@@ -15,33 +15,42 @@ from .messages import (
     ConnectionMessage, parse_message
 )
 
+# Import PlayerStatusUpdater if available
+try:
+    from ..player.status_updater import PlayerStatusUpdater
+    STATUS_UPDATER_AVAILABLE = True
+except ImportError:
+    logger.warning("PlayerStatusUpdater not available. Status updates will be manual only.")
+    STATUS_UPDATER_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
 class BrokerManager:
     """
     Broker Manager for real-time communication using MQTT.
-    
+
     This class provides a high-level interface for real-time communication
     between devices and client applications using MQTT. It abstracts the
     MQTT communication complexity and provides a simple pub/sub framework
     with predefined topics in the device ID namespace.
     """
-    
-    def __init__(self, config: BrokerConfig, player_interface=None):
+
+    def __init__(self, config: BrokerConfig, player_interface=None, enable_status_updater: bool = True):
         """
         Initialize the Broker Manager.
-        
+
         Args:
             config: Broker configuration
             player_interface: Player interface instance
+            enable_status_updater: Whether to enable automatic status updates
         """
         self.config = config
         self.player_interface = player_interface
-        
+
         # Create topic manager
         self.topic_manager = TopicManager(config.topic_prefix, config.device_id)
-        
+
         # Create MQTT client
         self.mqtt_client = MQTTClient(
             client_id=config.client_id,
@@ -49,23 +58,27 @@ class BrokerManager:
             port=config.port,
             options=config.connection_options
         )
-        
+
         # Register callbacks
         self.mqtt_client.register_on_connect(self._on_connect)
         self.mqtt_client.register_on_disconnect(self._on_disconnect)
-        
+
         # Set up last will message
         self._set_last_will()
-        
+
         # Command handlers
         self.command_handlers: Dict[str, Callable[[CommandMessage], ResponseMessage]] = {}
-        
+
         # State change callbacks
         self.state_change_callbacks: List[Callable[[StateMessage], None]] = []
-        
+
         # Connection status
         self.connected = False
-    
+
+        # Status updater
+        self.status_updater = None
+        self.enable_status_updater = enable_status_updater
+
     def _set_last_will(self) -> None:
         """Set the last will message."""
         last_will = ConnectionMessage(status="offline", timestamp=time.time())
@@ -75,45 +88,85 @@ class BrokerManager:
             qos=self.config.default_qos,
             retain=True
         )
-    
+
     def connect(self) -> bool:
         """
         Connect to the MQTT broker.
-        
+
         Returns:
             True if connection was successful, False otherwise
         """
-        return self.mqtt_client.connect()
-    
+        result = self.mqtt_client.connect()
+
+        # Initialize status updater if enabled and available
+        if result and self.enable_status_updater and self.player_interface:
+            self._init_status_updater()
+
+        return result
+
+    def _init_status_updater(self) -> None:
+        """Initialize the player status updater if available."""
+        if not STATUS_UPDATER_AVAILABLE:
+            logger.warning("PlayerStatusUpdater not available. Status updates will be manual only.")
+            return
+
+        if self.status_updater is not None:
+            return
+
+        try:
+            # Create status updater with default configuration
+            config = getattr(self.config, "raw_config", {})
+            self.status_updater = PlayerStatusUpdater(
+                player_interface=self.player_interface,
+                broker_manager=self,
+                config=config
+            )
+
+            # Start the status updater
+            self.status_updater.start()
+            logger.info("Player status updater initialized and started")
+        except Exception as e:
+            logger.error(f"Failed to initialize player status updater: {e}")
+
     def disconnect(self) -> None:
         """Disconnect from the MQTT broker."""
+        # Stop the status updater if it's running
+        if self.status_updater is not None:
+            try:
+                self.status_updater.stop()
+                logger.info("Player status updater stopped")
+            except Exception as e:
+                logger.error(f"Error stopping player status updater: {e}")
+            self.status_updater = None
+
+        # Disconnect from MQTT broker
         self.mqtt_client.disconnect()
-    
+
     def _on_connect(self, success: bool) -> None:
         """
         Callback for when the client connects to the broker.
-        
+
         Args:
             success: Whether the connection was successful
         """
         if success:
             self.connected = True
             logger.info("Connected to MQTT broker")
-            
+
             # Subscribe to command topic
             self._subscribe_to_commands()
-            
+
             # Publish online status
             self._publish_connection_status("online")
         else:
             self.connected = False
             logger.error("Failed to connect to MQTT broker")
-    
+
     def _on_disconnect(self) -> None:
         """Callback for when the client disconnects from the broker."""
         self.connected = False
         logger.info("Disconnected from MQTT broker")
-    
+
     def _subscribe_to_commands(self) -> None:
         """Subscribe to command topics."""
         for topic in self.topic_manager.get_subscription_topics():
@@ -123,46 +176,46 @@ class BrokerManager:
                 callback=self._on_command_received
             )
             logger.info(f"Subscribed to topic: {topic}")
-    
+
     def _on_command_received(self, topic: str, payload: bytes, properties: Dict[str, Any]) -> None:
         """
         Callback for when a command is received.
-        
+
         Args:
             topic: Topic the message was received on
             payload: Message payload
             properties: Message properties
         """
         logger.info(f"Received command on topic: {topic}")
-        
+
         # Parse the command message
         command_msg = parse_message(payload, 'command')
         if not command_msg or not isinstance(command_msg, CommandMessage):
             logger.error(f"Invalid command message received on topic {topic}")
             return
-        
+
         # Execute the command
         response = self._execute_command(command_msg)
-        
+
         # Publish the response
         self.publish_response(response)
-    
+
     def _execute_command(self, command_msg: CommandMessage) -> ResponseMessage:
         """
         Execute a command.
-        
+
         Args:
             command_msg: Command message
-            
+
         Returns:
             Response message
         """
         command = command_msg.command
         command_id = command_msg.command_id
         params = command_msg.params or {}
-        
+
         logger.info(f"Executing command: {command} (ID: {command_id})")
-        
+
         # Check if we have a handler for this command
         if command in self.command_handlers:
             try:
@@ -176,7 +229,7 @@ class BrokerManager:
                     result=False,
                     message=f"Error executing command: {str(e)}"
                 )
-        
+
         # If we don't have a handler but we have a player interface, try to execute the command there
         if self.player_interface:
             try:
@@ -205,7 +258,7 @@ class BrokerManager:
                     result=False,
                     message=f"Error executing command: {str(e)}"
                 )
-        
+
         # If we get here, we don't know how to handle the command
         logger.warning(f"Command {command} not supported")
         return ResponseMessage(
@@ -213,62 +266,62 @@ class BrokerManager:
             result=False,
             message=f"Command {command} not supported"
         )
-    
+
     def register_command_handler(self, command: str,
                                  handler: Callable[[CommandMessage], ResponseMessage]) -> None:
         """
         Register a command handler.
-        
+
         Args:
             command: Command name
             handler: Command handler function
         """
         self.command_handlers[command] = handler
         logger.info(f"Registered handler for command: {command}")
-    
+
     def register_state_change_callback(self, callback: Callable[[StateMessage], None]) -> None:
         """
         Register a state change callback.
-        
+
         Args:
             callback: State change callback function
         """
         self.state_change_callbacks.append(callback)
-    
+
     def publish_state(self, state: Union[StateMessage, Dict[str, Any]]) -> bool:
         """
         Publish a state update.
-        
+
         Args:
             state: State message or dictionary
-            
+
         Returns:
             True if publish was successful, False otherwise
         """
         if isinstance(state, dict):
             state = StateMessage.from_player_state(state)
-        
+
         # Call state change callbacks
         for callback in self.state_change_callbacks:
             try:
                 callback(state)
             except Exception as e:
                 logger.error(f"Error in state change callback: {e}")
-        
+
         return self.mqtt_client.publish(
             topic=self.topic_manager.get_topic(TopicType.STATE),
             payload=state.to_json(),
             qos=self.config.default_qos,
             retain=True
         )
-    
+
     def publish_response(self, response: ResponseMessage) -> bool:
         """
         Publish a command response.
-        
+
         Args:
             response: Response message
-            
+
         Returns:
             True if publish was successful, False otherwise
         """
@@ -278,14 +331,14 @@ class BrokerManager:
             qos=self.config.default_qos,
             retain=False
         )
-    
+
     def _publish_connection_status(self, status: str) -> bool:
         """
         Publish connection status.
-        
+
         Args:
             status: Connection status ("online" or "offline")
-            
+
         Returns:
             True if publish was successful, False otherwise
         """
@@ -296,25 +349,25 @@ class BrokerManager:
             qos=self.config.default_qos,
             retain=True
         )
-    
+
     def update_player_state(self) -> bool:
         """
         Update the player state.
-        
+
         This method gets the current state from the player interface and
         publishes it to the state topic.
-        
+
         Returns:
             True if update was successful, False otherwise
         """
         if not self.player_interface:
             logger.warning("Cannot update player state: no player interface provided")
             return False
-        
+
         try:
             # Get the current state from the player interface
             state = self.player_interface.get_status()
-            
+
             # Publish the state
             return self.publish_state(state)
         except Exception as e:
