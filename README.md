@@ -1,5 +1,7 @@
 # AmoraOS - IoT Edge Audio Platform and SDK
 
+> **Important:** AmoraOS is currently in early development stages. We are focused on creating a Minimum Viable Product (MVP) with core functionality. Features and APIs may change significantly as the project evolves.
+
 A Python implementation of an edge device audio system that provides a custom SDK for seamless integration with Waybox applications. This project migrates from Arch Linux to Debian Bookworm on Raspberry Pi music boxes, enabling sophisticated edge audio capabilities with cloud connectivity.
 
 > **Note:** The SDK now includes MQTT broker integration for real-time communication between devices and client applications, as well as Azure IoT Hub integration for device management and telemetry.

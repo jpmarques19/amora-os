@@ -159,9 +159,33 @@ await client.setVolume(80);
 await client.disconnect();
 ```
 
-## Test App
+## Test Apps
 
-The SDK includes a simple React test app for demonstration purposes. To run the test app:
+### MQTT Test Application
+
+The SDK includes an MQTT test application that demonstrates how to use the SDK to control the music player via MQTT commands. This serves as a proof of concept for the real-time communication implementation.
+
+To run the MQTT test application:
+
+```bash
+# Create a credentials file
+cd sdk
+poetry run python -m test_app.mqtt_test.run init --config credentials_configs.txt
+
+# Edit the credentials file with your MQTT broker and player configuration
+
+# Run the server component
+poetry run python -m test_app.mqtt_test.run server --config credentials_configs.txt
+
+# In another terminal, run the client component
+poetry run python -m test_app.mqtt_test.run client --config credentials_configs.txt
+```
+
+For more details, see the [MQTT Test Application README](test_app/mqtt_test/README.md).
+
+### React Test App
+
+The SDK also includes a simple React test app for demonstration purposes. To run the React test app:
 
 ```bash
 cd sdk/test_app
