@@ -222,7 +222,43 @@ To add a new command:
 
 ### Testing
 
-To test the application:
+#### Running Tests
+
+The application includes comprehensive unit and integration tests. To run the tests:
+
+```bash
+# Run all tests
+cd sdk/test_app/mqtt_test
+./run_tests.py
+
+# Run only unit tests
+./run_tests.py --type unit
+
+# Run only integration tests
+./run_tests.py --type integration
+
+# Run tests with verbose output
+./run_tests.py --verbose
+```
+
+The test runner will generate a coverage report in the terminal and an HTML coverage report in the `coverage_html` directory.
+
+#### Unit Tests
+
+Unit tests verify the functionality of individual components in isolation using mock objects. They don't require a running MQTT broker or MPD server.
+
+#### Integration Tests
+
+Integration tests verify the interaction between components and external services. They require:
+
+- A running MQTT broker (Mosquitto) on localhost:1883
+- A running MPD server on localhost:6600
+
+If these services are not available, the integration tests will be skipped.
+
+#### Manual Testing
+
+To manually test the application:
 
 1. Run the server component
 2. Run the client component

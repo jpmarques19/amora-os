@@ -1,0 +1,27 @@
+{
+    "mqtt": {
+        "broker_url": "localhost",
+        "port": 1883,
+        "username": null,
+        "password": null,
+        "device_id": "amora-test-device",
+        "topic_prefix": "amora/test",
+        "use_tls": false,
+        "keep_alive": 60,
+        "clean_session": true,
+        "reconnect_on_failure": true,
+        "max_reconnect_delay": 300,
+        "default_qos": 1,
+        "client_id": "amora-test-server"
+    },
+    "player": {
+        "mpd_host": "localhost",
+        "mpd_port": 6600,
+        "storage_path": "/tmp/amora-test/music",
+        "playlists_path": "/tmp/amora-test/playlists",
+        "audio_backend": "pipewire",
+        "audio_device": "default",
+        "audio_volume": 80,
+        "dev_mode": true
+    }
+}
