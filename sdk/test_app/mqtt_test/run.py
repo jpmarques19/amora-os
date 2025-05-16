@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 def create_credentials_file(output_path: str) -> None:
     """
     Create a credentials file template.
-    
+
     Args:
         output_path: Path to save the credentials file
     """
@@ -45,7 +45,7 @@ def create_credentials_file(output_path: str) -> None:
     except Exception as e:
         logger.error(f"Error loading template: {e}")
         return
-    
+
     # Save the template to the output path
     try:
         with open(output_path, "w") as f:
@@ -58,78 +58,118 @@ def create_credentials_file(output_path: str) -> None:
 async def run_client(config_path: str) -> None:
     """
     Run the client component.
-    
+
     Args:
         config_path: Path to the credentials file
     """
     # Load configuration
     mqtt_config = get_mqtt_config(config_path)
-    
+
     # Check if MQTT configuration is valid
     if not mqtt_config.get("broker_url"):
         print("Error: MQTT broker URL not specified")
         print(f"Please edit {config_path} with your MQTT broker configuration")
         print("or set the MQTT_BROKER_URL environment variable")
         return
-    
+
     # Create client
     client = MQTTTestClient(mqtt_config)
-    
+
     # Start client with curses
     await curses.wrapper(client.start)
-    
+
     # Stop client
     await client.stop()
 
 async def run_server(config_path: str) -> None:
     """
     Run the server component.
-    
+
     Args:
         config_path: Path to the credentials file
     """
+    # Direct print for debugging
+    print("\n===== STARTING MQTT TEST SERVER =====", flush=True)
+    print(f"Config path: {config_path}", flush=True)
+
     # Load configuration
     mqtt_config = get_mqtt_config(config_path)
     player_config = get_player_config(config_path)
-    
+
+    print(f"MQTT Broker URL: {mqtt_config.get('broker_url')}", flush=True)
+    print(f"MQTT Port: {mqtt_config.get('port')}", flush=True)
+    print(f"Device ID: {mqtt_config.get('device_id')}", flush=True)
+    print("===================================\n", flush=True)
+
     # Check if MQTT configuration is valid
     if not mqtt_config.get("broker_url"):
         print("Error: MQTT broker URL not specified")
         print(f"Please edit {config_path} with your MQTT broker configuration")
         print("or set the MQTT_BROKER_URL environment variable")
         return
-    
+
     # Create server
+    print("Creating MQTT Test Server...", flush=True)
     server = MQTTTestServer(mqtt_config, player_config)
-    
+
     # Start server
+    print("Starting MQTT Test Server...", flush=True)
     await server.start()
-    
+    print("MQTT Test Server started!", flush=True)
+
     # Keep running until stopped
     try:
+        print("Server running. Press Ctrl+C to stop.", flush=True)
+        counter = 0
         while server.running:
             await asyncio.sleep(1)
+            counter += 1
+            if counter % 10 == 0:  # Print every 10 seconds
+                print(f"Server still running... ({counter} seconds)", flush=True)
     except KeyboardInterrupt:
-        pass
+        print("Keyboard interrupt received. Stopping server...", flush=True)
     finally:
+        print("Stopping MQTT Test Server...", flush=True)
         await server.stop()
+        print("MQTT Test Server stopped!", flush=True)
 
 def main():
     """Main function."""
+    # Direct print for debugging
+    print("\n===== MQTT TEST APPLICATION =====", flush=True)
+    print(f"Current directory: {os.getcwd()}", flush=True)
+    print(f"Python version: {sys.version}", flush=True)
+    print("================================\n", flush=True)
+
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="MQTT Test Application")
     parser.add_argument("component", choices=["client", "server", "init"],
                         help="Component to run (client, server, or init to create credentials file)")
     parser.add_argument("--config", help="Path to credentials file", default="credentials_configs.txt")
     args = parser.parse_args()
-    
+
+    print(f"Component: {args.component}", flush=True)
+    print(f"Config path: {args.config}", flush=True)
+    print("================================\n", flush=True)
+
     # Run the selected component
-    if args.component == "client":
-        asyncio.run(run_client(args.config))
-    elif args.component == "server":
-        asyncio.run(run_server(args.config))
-    elif args.component == "init":
-        create_credentials_file(args.config)
+    try:
+        if args.component == "client":
+            print("Starting client component...", flush=True)
+            asyncio.run(run_client(args.config))
+        elif args.component == "server":
+            print("Starting server component...", flush=True)
+            asyncio.run(run_server(args.config))
+        elif args.component == "init":
+            print("Initializing credentials file...", flush=True)
+            create_credentials_file(args.config)
+    except Exception as e:
+        print(f"\n===== ERROR IN MAIN FUNCTION =====", flush=True)
+        print(f"Error: {e}", flush=True)
+        print(f"================================\n", flush=True)
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
