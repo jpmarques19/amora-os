@@ -28,16 +28,14 @@ class BrokerManager:
     with predefined topics in the device ID namespace.
     """
     
-    def __init__(self, config: BrokerConfig, player_interface=None):
+    def __init__(self, config: BrokerConfig):
         """
         Initialize the Broker Manager.
         
         Args:
             config: Broker configuration
-            player_interface: Player interface instance
         """
         self.config = config
-        self.player_interface = player_interface
         
         # Create topic manager
         self.topic_manager = TopicManager(config.topic_prefix, config.device_id)
@@ -59,6 +57,9 @@ class BrokerManager:
         
         # Command handlers
         self.command_handlers: Dict[str, Callable[[CommandMessage], ResponseMessage]] = {}
+        
+        # Command callbacks
+        self.command_callbacks: List[Callable[[CommandMessage], None]] = []
         
         # State change callbacks
         self.state_change_callbacks: List[Callable[[StateMessage], None]] = []
@@ -146,6 +147,13 @@ class BrokerManager:
         
         # Publish the response
         self.publish_response(response)
+        
+        # Notify command callbacks
+        for callback in self.command_callbacks:
+            try:
+                callback(command_msg)
+            except Exception as e:
+                logger.error(f"Error in command callback: {e}")
     
     def _execute_command(self, command_msg: CommandMessage) -> ResponseMessage:
         """
@@ -159,7 +167,6 @@ class BrokerManager:
         """
         command = command_msg.command
         command_id = command_msg.command_id
-        params = command_msg.params or {}
         
         logger.info(f"Executing command: {command} (ID: {command_id})")
         
@@ -177,35 +184,6 @@ class BrokerManager:
                     message=f"Error executing command: {str(e)}"
                 )
         
-        # If we don't have a handler but we have a player interface, try to execute the command there
-        if self.player_interface:
-            try:
-                # Get the method from the player interface
-                method = getattr(self.player_interface, command, None)
-                if method and callable(method):
-                    # Call the method with parameters
-                    result = method(**params)
-                    return ResponseMessage(
-                        command_id=command_id,
-                        result=True if result else False,
-                        message=f"Command {command} executed",
-                        data={"result": result}
-                    )
-                else:
-                    logger.warning(f"Command {command} not found in player interface")
-                    return ResponseMessage(
-                        command_id=command_id,
-                        result=False,
-                        message=f"Command {command} not supported"
-                    )
-            except Exception as e:
-                logger.error(f"Error executing command {command} on player interface: {e}")
-                return ResponseMessage(
-                    command_id=command_id,
-                    result=False,
-                    message=f"Error executing command: {str(e)}"
-                )
-        
         # If we get here, we don't know how to handle the command
         logger.warning(f"Command {command} not supported")
         return ResponseMessage(
@@ -215,7 +193,7 @@ class BrokerManager:
         )
     
     def register_command_handler(self, command: str,
-                                 handler: Callable[[CommandMessage], ResponseMessage]) -> None:
+                               handler: Callable[[CommandMessage], ResponseMessage]) -> None:
         """
         Register a command handler.
         
@@ -225,6 +203,15 @@ class BrokerManager:
         """
         self.command_handlers[command] = handler
         logger.info(f"Registered handler for command: {command}")
+    
+    def register_command_callback(self, callback: Callable[[CommandMessage], None]) -> None:
+        """
+        Register a command callback.
+        
+        Args:
+            callback: Command callback function
+        """
+        self.command_callbacks.append(callback)
     
     def register_state_change_callback(self, callback: Callable[[StateMessage], None]) -> None:
         """
@@ -296,27 +283,3 @@ class BrokerManager:
             qos=self.config.default_qos,
             retain=True
         )
-    
-    def update_player_state(self) -> bool:
-        """
-        Update the player state.
-        
-        This method gets the current state from the player interface and
-        publishes it to the state topic.
-        
-        Returns:
-            True if update was successful, False otherwise
-        """
-        if not self.player_interface:
-            logger.warning("Cannot update player state: no player interface provided")
-            return False
-        
-        try:
-            # Get the current state from the player interface
-            state = self.player_interface.get_status()
-            
-            # Publish the state
-            return self.publish_state(state)
-        except Exception as e:
-            logger.error(f"Error updating player state: {e}")
-            return False
