@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amora Music Player</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar / Playlist Panel -->
+      <div class="col-md-3 sidebar">
+        <div class="sidebar-header">
+          <h3>Amora Player</h3>
+          <div class="connection-status disconnected" id="connectionStatus">Disconnected</div>
+        </div>
+
+        <div class="playlist-section">
+          <h5>Playlists</h5>
+          <div class="playlist-selector">
+            <select class="form-select" id="playlistSelect">
+              <option value="">Select a playlist</option>
+            </select>
+            <button class="btn btn-primary mt-2 w-100" id="loadPlaylistButton">Load Playlist</button>
+          </div>
+
+          <h5 class="mt-4">Current Playlist</h5>
+          <div class="playlist-container">
+            <ul class="list-group" id="playlistItems">
+              <li class="list-group-item playlist-item-empty">No tracks available</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content / Player -->
+      <div class="col-md-9 main-content">
+        <div class="player-container">
+          <div class="now-playing-container">
+            <div class="track-info">
+              <h2 id="trackTitle">No Track Playing</h2>
+              <p id="trackArtist">-</p>
+              <p id="trackAlbum">-</p>
+
+              <div class="playback-status">
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="time-display" id="currentTime">0:00</span>
+                  <span class="time-display" id="duration">0:00</span>
+                </div>
+                <div class="progress">
+                  <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div class="controls mt-4">
+                <button class="btn control-btn" id="prevButton">
+                  <i class="bi bi-skip-backward-fill"></i>
+                </button>
+                <button class="btn control-btn play-btn" id="playPauseButton">
+                  <i class="bi bi-play-fill" id="playPauseIcon"></i>
+                </button>
+                <button class="btn control-btn" id="stopButton">
+                  <i class="bi bi-stop-fill"></i>
+                </button>
+                <button class="btn control-btn" id="nextButton">
+                  <i class="bi bi-skip-forward-fill"></i>
+                </button>
+              </div>
+
+              <div class="volume-container mt-4">
+                <div class="d-flex align-items-center">
+                  <i class="bi bi-volume-down me-2"></i>
+                  <input type="range" class="form-range" id="volumeSlider" min="0" max="100" value="50">
+                  <i class="bi bi-volume-up ms-2"></i>
+                  <span id="volumeValue" class="ms-2">50</span>%
+                </div>
+              </div>
+
+              <div class="playback-options mt-3">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="repeatCheck">
+                  <label class="form-check-label" for="repeatCheck">Repeat</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="randomCheck">
+                  <label class="form-check-label" for="randomCheck">Random</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="connection-panel mt-4">
+          <h4>MQTT Connection</h4>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="brokerUrl" class="form-label">Broker URL</label>
+              <input type="text" class="form-control" id="brokerUrl" value="localhost">
+            </div>
+            <div class="col-md-2">
+              <label for="brokerPort" class="form-label">Port</label>
+              <input type="number" class="form-control" id="brokerPort" value="1883">
+            </div>
+            <div class="col-md-4">
+              <label for="deviceId" class="form-label">Device ID</label>
+              <input type="text" class="form-control" id="deviceId" value="amora-player-001">
+            </div>
+            <div class="col-md-2">
+              <label for="connectButton" class="form-label">&nbsp;</label>
+              <div>
+                <button class="btn btn-success w-100" id="connectButton">Connect</button>
+                <button class="btn btn-danger w-100 mt-2" id="disconnectButton" disabled>Disconnect</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Placeholder for the Amora SDK - in a real implementation, this would be the actual SDK -->
+  <script src="js/amora-sdk-mock.js"></script>
+  <script src="js/player.js"></script>
+</body>
+</html>
