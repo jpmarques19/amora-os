@@ -1,0 +1,43 @@
+{
+  "name": "amora-client-sdk",
+  "version": "0.1.0",
+  "description": "Amora Client SDK for controlling music player devices through MQTT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "docs": "typedoc --out docs src"
+  },
+  "keywords": [
+    "amora",
+    "mqtt",
+    "music",
+    "player",
+    "sdk"
+  ],
+  "author": "Amora Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^18.15.11",
+    "@typescript-eslint/eslint-plugin": "^5.57.1",
+    "@typescript-eslint/parser": "^5.57.1",
+    "eslint": "^8.38.0",
+    "jest": "^29.5.0",
+    "prettier": "^2.8.7",
+    "ts-jest": "^29.1.0",
+    "typedoc": "^0.24.1",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "mqtt": "^4.3.7"
+  },
+  "files": [
+    "dist/**/*"
+  ]
+}
